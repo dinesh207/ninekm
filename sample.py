@@ -156,7 +156,7 @@ class Scrapper:
                         logging.error('invalid choice, exiting')
                         exit()
                 else:
-                    logging.debug('No of results: ', no_of_results)
+                    logging.debug('No of results: ' + str(no_of_results))
                     return self.get_max_page(soup)
         except AttributeError:
             logging.error(
