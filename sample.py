@@ -215,13 +215,13 @@ class Scrapper:
             logging.error('screen type cannot be recognized')
 
     def get_product_info(self, soup, valid_page_url_list, displayType):
-        logging.info("Processing data for: " + self.searchterm + ", total pages: " + str(len(valid_page_url_list)))
+        print("Processing data for: " + self.searchterm + ", total pages: " + str(len(valid_page_url_list)))
         if displayType == "box":
             # Page - 1            
-            logging.info("page: 1")
+            print("page: 1")
             self.parallel_process_box_info(soup)
             for i in range(len(valid_page_url_list[1:])):
-                logging.info("page: " + str(i))
+                print("page: " + str(i))
                 url = valid_page_url_list[i]
                 response = requests.get(url)
                 raw_html = response.content
