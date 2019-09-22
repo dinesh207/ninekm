@@ -364,6 +364,8 @@ class Scrapper:
                     img_1 = bkUrl
                     img_2 = bkUrl.replace('/128/128/', '/416/416/')
                     img_3 = bkUrl.replace('/128/128/', '/832/832/')
+                    if img_3 in image_urls:
+                        continue
                     image_urls += img_3 + ", "
                     if "http" in img_3:
                         img_name = img_3[img_3.rindex('/') +
