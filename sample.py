@@ -119,7 +119,7 @@ class Scrapper:
             rowHeaders = ["name", "product_description", "product_full_description", 
             "specifications", "brand_name", "company_name",
             "weight", "sub_category", "parent_category", "family", "SKU", "MRP", "Barcode", "product_images", "images_storage_path"]
-            self.file_csv = open(self.searchterm + '_data.csv', mode='w', encoding='utf-8')
+            self.file_csv = open(self.searchterm + '_data.csv', mode='w', newline='\n', encoding='utf-8')
             self.csv = csv.DictWriter(self.file_csv, fieldnames=rowHeaders)
             self.csv.writeheader()
         except Exception:
