@@ -6,8 +6,8 @@ import base64
 import urllib
 import os
 import sys
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
+# from selenium import webdriver
+# from selenium.webdriver.chrome.options import Options
 import multiprocessing
 # from joblib import Parallel, delayed
 # from functools import partial
@@ -17,11 +17,18 @@ import cloudinary
 import cloudinary.uploader
 import cloudinary.api
 import re
+import time
 
 CLOUDINARY_URL="cloudinary://633978742621558:Xj9RkbPCT1NajlH1BQCzVZVfy2k@ninekm"
 
+cloudinary.config( 
+  cloud_name = "ninekm", 
+  api_key = "633978742621558", 
+  api_secret = "Xj9RkbPCT1NajlH1BQCzVZVfy2k" 
+)
+
 parser = ArgumentParser()
-parser.add_argument("test")
+parser.add_argument("--test", dest="test", default=False, action='store_true')
 parser.add_argument("--log", default="INFO", dest='log')
 
 args = parser.parse_args()
@@ -79,11 +86,6 @@ class Scrapper:
 
         self.searchterm = searchterm
         self.url = self.URL + self.create_url(self.searchterm)
-        # chrome_options = Options()
-        # chrome_options.add_argument("--headless")
-        # self.driver_path = os.path.join(os.getcwd(), 'chromedriver')
-        # self.driver = webdriver.Chrome(self.driver_path,
-        #                                chrome_options=chrome_options)
         self.num_cors = multiprocessing.cpu_count()
         self.create_csv_file()
 
@@ -117,7 +119,7 @@ class Scrapper:
             rowHeaders = ["name", "product_description", "product_full_description", 
             "specifications", "brand_name", "company_name",
             "weight", "sub_category", "parent_category", "family", "SKU", "MRP", "Barcode", "product_images", "images_storage_path"]
-            self.file_csv = open(self.searchterm + '_data.csv', mode='w')
+            self.file_csv = open(self.searchterm + '_data.csv', mode='w', encoding='utf-8')
             self.csv = csv.DictWriter(self.file_csv, fieldnames=rowHeaders)
             self.csv.writeheader()
         except Exception:
@@ -222,6 +224,7 @@ class Scrapper:
             self.parallel_process_box_info(soup)
             for i in range(len(valid_page_url_list[1:])):
                 print("page: " + str(i))
+                time.sleep(2)
                 url = valid_page_url_list[i]
                 response = requests.get(url)
                 raw_html = response.content
@@ -229,10 +232,13 @@ class Scrapper:
                 self.parallel_process_box_info(soup)
         else:
             # Page - 1
+            print("page: 1")            
             self.parallel_process_info(soup)
             for i in range(len(valid_page_url_list[1:])):
-                logging.info("page: " + str(i))
+                print("page: " + str(i))
+                time.sleep(2)
                 url = valid_page_url_list[i]
+                response = requests.get(url)
                 raw_html = response.content
                 soup = Bs(raw_html, 'html.parser')
                 self.parallel_process_info(soup)   
@@ -311,6 +317,7 @@ class Scrapper:
                 # self.driver.get(href)
 
                 logging.debug("Log-4: Waiting pageload")
+                time.sleep(1)
                 res = requests.get(href)
                 # product_html = self.driver.page_source
                 product_soup = Bs(res.content, 'html.parser')
@@ -355,6 +362,7 @@ class Scrapper:
                 #     os.makedirs(local_images_path)
                 imageList = product_soup.find_all("li", class_="_4f8Q22")
                 for li in imageList:
+                    time.sleep(0.5)
                     logging.debug("Log-5: Reading from LI ")
                     # 78, 312, 416, 832
                     # 78, 612,
