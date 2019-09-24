@@ -219,13 +219,13 @@ class Scrapper:
     def get_product_info(self, soup, valid_page_url_list, displayType):
         print("Processing data for: " + self.searchterm + ", total pages: " + str(len(valid_page_url_list)))
         if displayType == "box":
-            print("page: 1" + " started at: " + time.ctime(time.time()))
+            print("page: 1 started at: " + time.ctime(time.time()))
             self.parallel_process_box_info(soup)
-            print("page: 1" + " finished at: " + time.ctime(time.time()))
+            print("page: 1 finished at: " + time.ctime(time.time()))
         else:
-            print("page: 1" + " started at: " + time.ctime(time.time()))
+            print("page: 1 started at: " + time.ctime(time.time()))
             self.parallel_process_info(soup)
-            print("page: 1" + " finished at: " + time.ctime(time.time()))
+            print("page: 1 finished at: " + time.ctime(time.time()))
         if len(valid_page_url_list) > 1:                       
             for i in range(len(valid_page_url_list[1:])):
                 print("page: " + str(i + 2) + " started at: " + time.ctime(time.time()))
@@ -312,9 +312,9 @@ class Scrapper:
 
                 # self.driver.get(href)
 
-                logging.debug("Log-4: Waiting pageload")
-                time.sleep(1)
+                logging.debug("Log-4: Waiting pageload")                
                 res = requests.get(href)
+                time.sleep(0.5)
                 # product_html = self.driver.page_source
                 product_soup = Bs(res.content, 'html.parser')
 
@@ -358,7 +358,6 @@ class Scrapper:
                 #     os.makedirs(local_images_path)
                 imageList = product_soup.find_all("li", class_="_4f8Q22")
                 for li in imageList:
-                    time.sleep(0.5)
                     logging.debug("Log-5: Reading from LI ")
                     # 78, 312, 416, 832
                     # 78, 612,
@@ -404,20 +403,22 @@ class Scrapper:
             "images_storage_path": local_images_path
         })
 
+    def upload_files(self, imgUrl, publicId):  
+        logging.debug("File uploading to cloudinary")
+        async_option = {
+            "public_id"=publicId,
+            "width"=832,
+            "height"=832,
+            "async": True
+        }
+        response = cloudinary.uploader.upload(
+            file=imgUrl,
+            **async_option
+        )
+    
     def handle_different_screen_format(self):
         logging.error(
             'Screen format is different, this functionality will soon be incorporated'
-        )
-
-    def upload_files(self, imgUrl, publicId):  
-        logging.debug("File uploading to cloudinary")
-        async_option = {"async": True}
-        response = cloudinary.uploader.upload(
-            file=imgUrl,
-            public_id=publicId,
-            width=832,
-            height=832,
-            **async_option
         )
 
     def tearDown(self):
