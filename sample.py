@@ -357,31 +357,48 @@ class Scrapper:
                 # if not os.path.exists(local_images_path):
                 #     os.makedirs(local_images_path)
                 imageList = product_soup.find_all("li", class_="_4f8Q22")
-                for li in imageList:
-                    logging.debug("Log-5: Reading from LI ")
-                    # 78, 312, 416, 832
-                    # 78, 612,
-                    bkImg = li.find("div", class_="_2_AcLJ")['style']
-                    bkUrl = bkImg.split("url(")[1]
-                    bkUrl = bkUrl.replace(")", "")
-                    img_1 = bkUrl
-                    img_2 = bkUrl.replace('/128/128/', '/416/416/')
-                    img_3 = bkUrl.replace('/128/128/', '/832/832/')
-                    if img_3 in image_urls:
-                        continue
-                    image_urls += img_3 + ", "
-                    if "http" in img_3:
-                        img_name = img_3[img_3.rindex('/') +
-                                            1:img_3.rindex('?')]
-                        logging.debug("Image Name: " + img_name)
-                        subCat = sub_category.split(">")
-                        customSubCat = subCat[len(subCat) - 1]
-                        publicId = category + "/" + customSubCat + "/" + brand + "/" + img_name.replace('.jpeg', '').replace('.jpg', '')
-                        publicId = publicId.lower().replace(" ", "_")
-                        publicId = re.sub('[?&#\%<>]', '', publicId).replace('__', '_')
-                        local_images_path += self.CLOUDINARY_IMAGE_URL + "/" + publicId + ", "
-                        logging.debug(local_images_path)
-                        self.upload_files(img_3, publicId)
+                if len(imageList) <= 0:
+                    if product_soup.find("img", class_="_1Nyybr") is not None:
+                        img_3 = product_soup.find("img", class_="_1Nyybr")['src']
+                        image_urls += img_3
+                        if "http" in img_3:
+                            img_name = img_3[img_3.rindex('/') +
+                                                1:img_3.rindex('?')]
+                            logging.debug("Image Name: " + img_name)
+                            subCat = sub_category.split(">")
+                            customSubCat = subCat[len(subCat) - 1]
+                            publicId = category + "/" + customSubCat + "/" + brand + "/" + img_name.replace('.jpeg', '').replace('.jpg', '')
+                            publicId = publicId.lower().replace(" ", "_")
+                            publicId = re.sub('[?&#\%<>]', '', publicId).replace('__', '_')
+                            local_images_path += self.CLOUDINARY_IMAGE_URL + "/" + publicId + ", "
+                            logging.debug(local_images_path)
+                            self.upload_files(img_3, publicId)
+                else:
+                    for li in imageList:
+                        logging.debug("Log-5: Reading from LI ")
+                        # 78, 312, 416, 832
+                        # 78, 612,
+                        bkImg = li.find("div", class_="_2_AcLJ")['style']
+                        bkUrl = bkImg.split("url(")[1]
+                        bkUrl = bkUrl.replace(")", "")
+                        img_1 = bkUrl
+                        img_2 = bkUrl.replace('/128/128/', '/416/416/')
+                        img_3 = bkUrl.replace('/128/128/', '/832/832/')
+                        if img_3 in image_urls:
+                            continue
+                        image_urls += img_3 + ", "
+                        if "http" in img_3:
+                            img_name = img_3[img_3.rindex('/') +
+                                                1:img_3.rindex('?')]
+                            logging.debug("Image Name: " + img_name)
+                            subCat = sub_category.split(">")
+                            customSubCat = subCat[len(subCat) - 1]
+                            publicId = category + "/" + customSubCat + "/" + brand + "/" + img_name.replace('.jpeg', '').replace('.jpg', '')
+                            publicId = publicId.lower().replace(" ", "_")
+                            publicId = re.sub('[?&#\%<>]', '', publicId).replace('__', '_')
+                            local_images_path += self.CLOUDINARY_IMAGE_URL + "/" + publicId + ", "
+                            logging.debug(local_images_path)
+                            self.upload_files(img_3, publicId)
             except Exception:
                 logging.error("Line: 383 - Oops!", sys.exc_info()[1], "occured.")
 
