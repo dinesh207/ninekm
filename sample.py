@@ -35,6 +35,7 @@ args = parser.parse_args()
 
 class Scrapper:
     URL = 'https://www.flipkart.com/search?q='
+    SITE = 'flipkart'
     PRODUCT_CLASS_DICT = {
         'name': '_3wU53n',
         'href_class': '_31qSD5',
@@ -352,6 +353,9 @@ class Scrapper:
                         else:
                             sub_category = breadcrumb.get_text()
                     brand = breadcrumbs[len(breadcrumbs) - 2].get_text()
+
+                if (brand and self.SITE in brand.lower()) or (full_desc and self.SITE in full_desc.lower()):
+                    continue
                 
                 # local_images_path = "images/" + self.searchterm + "/" + name
                 # if not os.path.exists(local_images_path):
