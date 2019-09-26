@@ -18,6 +18,7 @@ import cloudinary.uploader
 import cloudinary.api
 import re
 import time
+from imagekitio.client import Imagekit
 
 CLOUDINARY_URL="cloudinary://633978742621558:Xj9RkbPCT1NajlH1BQCzVZVfy2k@ninekm"
 
@@ -27,9 +28,16 @@ cloudinary.config(
   api_secret = "Xj9RkbPCT1NajlH1BQCzVZVfy2k" 
 )
 
+client = Imagekit({"api_key": "public_XWH8O3smcBALxgCVFGWWXHtP1pM=",
+                   "api_secret": "private_7bUUPQ6hrfE3V7owWcI4VH/FFm8=",
+                   "imagekit_id": "ninekm",
+                   "use_subdomain": True,
+                   "use_secure": True})
+
 parser = ArgumentParser()
-parser.add_argument("--test", dest="test", default=False, action='store_true')
 parser.add_argument("--log", default="INFO", dest='log')
+parser.add_argument("--test", dest="test", default=False, action='store_true')
+parser.add_argument("--useImageKit", dest="useImageKit", default=False, action='store_true')
 
 args = parser.parse_args()
 
@@ -79,6 +87,7 @@ class Scrapper:
     PRODUCT_DESCRIPTION = 'bhgxx2 col-12-12 _1y9a40 _3la3Fn _1zZOAc p'  # Read text
 
     CLOUDINARY_IMAGE_URL="https://res.cloudinary.com/ninekm/image/upload"
+    IMAGEKIT_URL="https://ik.imagekit.io/ninekm"
 
     def __init__(self, searchterm):
         loglevel = args.log
@@ -355,54 +364,40 @@ class Scrapper:
                     brand = breadcrumbs[len(breadcrumbs) - 2].get_text()
 
                 if (brand and self.SITE in brand.lower()) or (full_desc and self.SITE in full_desc.lower()):
-                    continue
-                
-                # local_images_path = "images/" + self.searchterm + "/" + name
-                # if not os.path.exists(local_images_path):
-                #     os.makedirs(local_images_path)
-                imageList = product_soup.find_all("li", class_="_4f8Q22")
-                if len(imageList) <= 0:
-                    if product_soup.find("img", class_="_1Nyybr") is not None:
-                        img_3 = product_soup.find("img", class_="_1Nyybr")['src']
-                        image_urls += img_3
-                        if "http" in img_3:
-                            img_name = img_3[img_3.rindex('/') +
-                                                1:img_3.rindex('?')]
-                            logging.debug("Image Name: " + img_name)
-                            subCat = sub_category.split(">")
-                            customSubCat = subCat[len(subCat) - 1]
-                            publicId = category + "/" + customSubCat + "/" + brand + "/" + img_name.replace('.jpeg', '').replace('.jpg', '')
-                            publicId = publicId.lower().replace(" ", "_")
-                            publicId = re.sub('[?&#\%<>]', '', publicId).replace('__', '_')
-                            local_images_path += self.CLOUDINARY_IMAGE_URL + "/" + publicId + ", "
-                            logging.debug(local_images_path)
-                            self.upload_files(img_3, publicId)
-                else:
-                    for li in imageList:
-                        logging.debug("Log-5: Reading from LI ")
-                        # 78, 312, 416, 832
-                        # 78, 612,
-                        bkImg = li.find("div", class_="_2_AcLJ")['style']
-                        bkUrl = bkImg.split("url(")[1]
-                        bkUrl = bkUrl.replace(")", "")
-                        img_1 = bkUrl
-                        img_2 = bkUrl.replace('/128/128/', '/416/416/')
-                        img_3 = bkUrl.replace('/128/128/', '/832/832/')
-                        if img_3 in image_urls:
-                            continue
-                        image_urls += img_3 + ", "
-                        if "http" in img_3:
-                            img_name = img_3[img_3.rindex('/') +
-                                                1:img_3.rindex('?')]
-                            logging.debug("Image Name: " + img_name)
-                            subCat = sub_category.split(">")
-                            customSubCat = subCat[len(subCat) - 1]
-                            publicId = category + "/" + customSubCat + "/" + brand + "/" + img_name.replace('.jpeg', '').replace('.jpg', '')
-                            publicId = publicId.lower().replace(" ", "_")
-                            publicId = re.sub('[?&#\%<>]', '', publicId).replace('__', '_')
-                            local_images_path += self.CLOUDINARY_IMAGE_URL + "/" + publicId + ", "
-                            logging.debug(local_images_path)
-                            self.upload_files(img_3, publicId)
+                    logging.debug("Ignoring processing product images")
+                else:               
+                    # local_images_path = "images/" + self.searchterm + "/" + name
+                    # if not os.path.exists(local_images_path):
+                    #     os.makedirs(local_images_path)
+                    imageList = product_soup.find_all("li", class_="_4f8Q22")
+                    if len(imageList) <= 0:
+                        if product_soup.find("img", class_="_1Nyybr") is not None:
+                            img_3 = product_soup.find("img", class_="_1Nyybr")['src']
+                            image_urls += img_3
+                            if "http" in img_3:
+                                img_name = img_3[img_3.rindex('/') +
+                                                    1:img_3.rindex('?')]
+                                imgPath = self.processImageDownload(img_3, img_name, category, sub_category, brand)
+                                local_images_path += imgPath + ", "
+                    else:
+                        for li in imageList:
+                            logging.debug("Log-5: Reading from LI ")
+                            # 78, 312, 416, 832
+                            # 78, 612,
+                            bkImg = li.find("div", class_="_2_AcLJ")['style']
+                            bkUrl = bkImg.split("url(")[1]
+                            bkUrl = bkUrl.replace(")", "")
+                            img_1 = bkUrl
+                            img_2 = bkUrl.replace('/128/128/', '/416/416/')
+                            img_3 = bkUrl.replace('/128/128/', '/832/832/')
+                            if img_3 in image_urls:
+                                continue
+                            image_urls += img_3 + ", "
+                            if "http" in img_3:
+                                img_name = img_3[img_3.rindex('/') +
+                                                    1:img_3.rindex('?')]
+                                imgPath = self.processImageDownload(img_3, img_name, category, sub_category, brand)
+                                local_images_path += imgPath + ", "
             except Exception:
                 logging.error("Line: 383 - Oops!", sys.exc_info()[1], "occured.")
 
@@ -424,18 +419,45 @@ class Scrapper:
             "images_storage_path": local_images_path
         })
 
-    def upload_files(self, imgUrl, publicId):  
-        logging.debug("File uploading to cloudinary")
-        async_option = {
-            "public_id"=publicId,
-            "width"=832,
-            "height"=832,
-            "async": True
-        }
-        response = cloudinary.uploader.upload(
-            file=imgUrl,
-            **async_option
-        )
+    def processImageDownload(self, img_3, img_name, category, sub_category, brand):
+        logging.debug("Image Name: " + img_name)
+        subCat = sub_category.split(">")
+        customSubCat = subCat[len(subCat) - 1]
+        folder = category + "/" + customSubCat + "/" + brand
+        publicId = folder + "/" + img_name.replace('.jpeg', '').replace('.jpg', '')
+        publicId = publicId.lower().replace(" ", "_")
+        publicId = re.sub('[?&#\%<>]', '', publicId).replace('__', '_')
+        folder = folder.lower().replace(" ", "_")
+        folder = re.sub('[?&#\%<>]', '', folder).replace('__', '_')
+        if args.useImageKit:
+            imgPath = self.IMAGEKIT_URL + "/" + folder + "/" + img_name
+        else:
+            imgPath = self.CLOUDINARY_IMAGE_URL + "/" + publicId
+        logging.debug(local_images_path)
+        self.upload_files(img_3, publicId, folder, img_name)
+        return imgPath
+
+    def upload_files(self, imgUrl, publicId, folder, imgName):  
+        if args.useImageKit:
+            options = {
+                "filename": imgName,
+                "folder": folder,
+                "useUniqueFilename": False,
+            }
+            response = client.upload_via_url(imgUrl, options)
+            # print(response)
+        else:
+            logging.debug("File uploading to cloudinary")
+            async_option = {
+                "public_id":publicId,
+                "width":832,
+                "height":832,
+                "async": True
+            }
+            response = cloudinary.uploader.upload(
+                file=imgUrl,
+                **async_option
+            )
     
     def handle_different_screen_format(self):
         logging.error(
